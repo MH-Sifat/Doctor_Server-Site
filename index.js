@@ -26,6 +26,7 @@ async function run() {
         const appointmentCollection = database.collection('appointmentOptions');
         const bookingCollection = database.collection('booking');
         const usersCollection = database.collection('Users');
+        const doctorsCollection = database.collection('Doctors');
 
 
         app.get('/appointmentoptions', async (req, res) => {
@@ -45,6 +46,16 @@ async function run() {
             })
             res.send(options)
         })
+
+        // get specific option from database collection
+        app.get('/appointmentSpecialty', async (req, res) => {
+            const query = {};
+            const result = await appointmentCollection.find(query).project({ name: 1 }).toArray();
+            res.send(result);
+
+        })
+
+
 
         app.get('/bookings', async (req, res) => {
             const email = req.query.email;
@@ -104,6 +115,46 @@ async function run() {
             res.send(result)
         })
 
+        // admin check by email
+
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isAdmin: user?.role === 'admin' })
+
+        })
+
+        // doctors added image hosting in imagebb 
+        app.post('/doctors', async (req, res) => {
+            const doctor = req.body;
+            const result = await doctorsCollection.insertOne(doctor);
+            res.send(result)
+
+        })
+
+
+        // doctors added image hosting in server 
+        // app.post('/doctors',async(req,res)=>{
+        //     const name = req.body.name;
+        //     const email = req.body.email;
+        //     const image= req.files.image;
+        //     console.log(name,email);
+        // })
+
+        app.get('/doctors', async (req, res) => {
+            const query = {};
+            const doctors = await doctorsCollection.find(query).toArray();
+            res.send(doctors)
+        })
+
+        app.delete('/doctors/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const result = await doctorsCollection.deleteOne(filter);
+            res.send(result)
+
+        })
     } finally {
         // await client.close();
     }
