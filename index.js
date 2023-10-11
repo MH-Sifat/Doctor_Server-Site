@@ -1,13 +1,15 @@
 const express = require('express');
 const cors = require('cors');
+const fileUpload = require('express-fileupload');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 3000;
 const app = express()
 
 // midleware
-app.use(cors())
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
+app.use(fileUpload());
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@practice.ltifab8.mongodb.net/?retryWrites=true&w=majority`;
@@ -126,21 +128,35 @@ async function run() {
         })
 
         // doctors added image hosting in imagebb 
-        app.post('/doctors', async (req, res) => {
-            const doctor = req.body;
-            const result = await doctorsCollection.insertOne(doctor);
-            res.send(result)
+        // app.post('/doctors', async (req, res) => {
+        //     const doctor = req.body;
+        //     const result = await doctorsCollection.insertOne(doctor);
+        //     res.send(result)
 
-        })
+        // })
 
 
         // doctors added image hosting in server 
-        // app.post('/doctors',async(req,res)=>{
-        //     const name = req.body.name;
-        //     const email = req.body.email;
-        //     const image= req.files.image;
-        //     console.log(name,email);
-        // })
+        app.post('/doctors', async (req, res) => {
+            const name = req.body.name;
+            const email = req.body.email;
+            const specialty = req.body.specialty;
+
+            const image = req.files.image;
+            const imageData = image.data;
+            const enCodeImage = imageData.toString('base64');
+            const imageBuffer = Buffer.from(enCodeImage, 'base64');
+
+            const doctor = {
+                name,
+                email,
+                specialty,
+                image: imageBuffer
+            }
+
+            const result = await doctorsCollection.insertOne(doctor);
+            res.send(result)
+        })
 
         app.get('/doctors', async (req, res) => {
             const query = {};
